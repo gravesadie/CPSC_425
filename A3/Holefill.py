@@ -11,12 +11,30 @@ def ComputeSSD(TODOPatch, TODOMask, textureIm, patchL):
     ssd_rows = tex_rows - 2 * patchL
     ssd_cols = tex_cols - 2 * patchL
     SSD = np.zeros((ssd_rows,ssd_cols))
+    # convert patches to floats
+    TODOPatch=TODOPatch*1.0
+    textureIm=textureIm*1.0
+    # loop through SSD positions
     for r in range(ssd_rows):
         for c in range(ssd_cols):
             # Compute sum square difference between textureIm and TODOPatch
             # for all pixels where TODOMask = 0, and store the result in SSD
-            #
             
+            # get appropriate subpatch of texture to compare with patch
+            textureIm_sub = textureIm[r:r+2*patchL+1,c:c+2*patchL+1,:]
+            # mask out both textureIm and TODOPatch according to the inverted mask
+            TODOMask = TODOMask.reshape(TODOMask.shape[0],TODOMask.shape[1],1)
+            TODOMask = np.float32(TODOMask == 0)
+            TODOPatch_masked = TODOPatch*TODOMask
+            textureIm_masked = textureIm_sub*TODOMask
+            # take sqaured difference for each channel
+            sq_dif_r = (TODOPatch_masked[:,:,0] - textureIm_masked[:,:,0])**2
+            sq_dif_g = (TODOPatch_masked[:,:,1] - textureIm_masked[:,:,1])**2
+            sq_dif_b = (TODOPatch_masked[:,:,2] - textureIm_masked[:,:,2])**2
+            # sum each channel and average
+            sum_sq_dif = np.mean(np.sum(sq_dif_r) + np.sum(sq_dif_g) + np.sum(sq_dif_b))
+            # add to SSD array
+            SSD[r,c]=sum_sq_dif
             #
             pass
         pass
