@@ -24,7 +24,7 @@ def ComputeSSD(TODOPatch, TODOMask, textureIm, patchL):
             textureIm_sub = textureIm[r:r+2*patchL+1,c:c+2*patchL+1,:]
             # mask out both textureIm and TODOPatch according to the inverted mask
             TODOMask = TODOMask.reshape(TODOMask.shape[0],TODOMask.shape[1],1)
-            TODOMask = np.float32(TODOMask == 0)
+            TODOMask = np.float32(TODOMask == 0) # inversion
             TODOPatch_masked = TODOPatch*TODOMask
             textureIm_masked = textureIm_sub*TODOMask
             # take sqaured difference for each channel
@@ -48,8 +48,15 @@ def CopyPatch(imHole,TODOMask,textureIm,iPatchCenter,jPatchCenter,iMatchCenter,j
             # the hole imHole for each pixel where TODOMask = 1.
             # The patch is centred on iPatchCenter, jPatchCenter in the image imHole
             #
-            # ADD YOUR CODE HERE
-            #
+            
+            # check that the pixel value is inside the hole and only copy if so
+            # get image pixel, if black then we know it's part of the whole
+            img_px = imHole[iPatchCenter-(patchSize-i), jPatchCenter-(patchSize-j), :]
+            if np.max(img_px) == 0:
+                # copy appropriate pixel value from texture patch for each channel
+                imHole[iPatchCenter-(patchSize-i), jPatchCenter-(patchSize-j), 0] = textureIm[iMatchCenter-(patchSize-i), jMatchCenter-(patchSize-j), 0] # r
+                imHole[iPatchCenter-(patchSize-i), jPatchCenter-(patchSize-j), 1] = textureIm[iMatchCenter-(patchSize-i), jMatchCenter-(patchSize-j), 1] # g
+                imHole[iPatchCenter-(patchSize-i), jPatchCenter-(patchSize-j), 2] = textureIm[iMatchCenter-(patchSize-i), jMatchCenter-(patchSize-j), 2] # b
             pass
         pass
     return imHole
@@ -106,11 +113,13 @@ imRows, imCols, imBands = np.shape(im_array)
 #   texture_region.pkl, if both exist, otherwise user has to select the regions.
 if os.path.isfile('fill_region.pkl') and os.path.isfile('texture_region.pkl'):
     fill_region_file = open('fill_region.pkl', 'rb')
-    fillRegion = pickle.load( fill_region_file )
+    fillRegion = pandas.read_pickle( fill_region_file )
+    #fillRegion = pickle.load( fill_region_file )
     fill_region_file.close()
 
     texture_region_file = open('texture_region.pkl', 'rb')
-    textureRegion = pickle.load( texture_region_file )
+    #textureRegion = pickle.load( texture_region_file )
+    textureRegion = pandas.read_pickle( texture_region_file )
     texture_region_file.close()
 else:
     # ask the user to define the regions
