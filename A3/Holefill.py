@@ -50,7 +50,7 @@ def CopyPatch(imHole,TODOMask,textureIm,iPatchCenter,jPatchCenter,iMatchCenter,j
             #
             
             # check that the pixel value is inside the hole and only copy if so
-            # get image pixel, if black then we know it's part of the whole
+            # get image pixel from mask, if 1 then we know it's part of the hole
             img_px = imHole[iPatchCenter-(patchSize-i), jPatchCenter-(patchSize-j), :]
             if np.max(img_px) == 0:
                 # copy appropriate pixel value from texture patch for each channel
