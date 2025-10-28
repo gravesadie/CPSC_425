@@ -113,13 +113,11 @@ imRows, imCols, imBands = np.shape(im_array)
 #   texture_region.pkl, if both exist, otherwise user has to select the regions.
 if os.path.isfile('fill_region.pkl') and os.path.isfile('texture_region.pkl'):
     fill_region_file = open('fill_region.pkl', 'rb')
-    fillRegion = pandas.read_pickle( fill_region_file )
-    #fillRegion = pickle.load( fill_region_file )
+    fillRegion = pickle.load( fill_region_file )
     fill_region_file.close()
 
     texture_region_file = open('texture_region.pkl', 'rb')
-    #textureRegion = pickle.load( texture_region_file )
-    textureRegion = pandas.read_pickle( texture_region_file )
+    textureRegion = pickle.load( texture_region_file )
     texture_region_file.close()
 else:
     # ask the user to define the regions
