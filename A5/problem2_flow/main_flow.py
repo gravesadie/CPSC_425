@@ -4,6 +4,7 @@ from PIL import Image
 from utils import *
 # Flow
 import problem2 as part2
+import os
 
 def show_two(im1, im2):
     fig = plt.figure(figsize=(14, 6), dpi=80, facecolor='w', edgecolor='k')
@@ -53,5 +54,7 @@ def problem2_start():
     problem2("part2_street_frame1.png", "part2_street_frame2.png", aggregate="gaussian", sigma=2.2)
     print ("")
 
+# set appropriate directory
+os.chdir(r'C:\Users\Sadie\Documents\GitHub\CPSC_425\A5\problem2_flow')
 
 problem2_start()

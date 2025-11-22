@@ -3,10 +3,13 @@ import numpy as np
 from PIL import Image
 # Stereo
 import problem1 as part1
+import os
+
+# change working directory as needed
+os.chdir(r'C:\Users\Sadie\Documents\GitHub\CPSC_425\A5\problem1_stereo')
 
 def rgb2gray(im):
     return np.mean(im, -1)
-
 
 def load_image(path):
     return plt.imread(path)
@@ -42,7 +45,7 @@ def problem1():
     padded_img_l = part1.pad_image(im_left, window_size, padding_mode='symmetric')
     padded_img_r = part1.pad_image(im_right, window_size, padding_mode='symmetric')
 
-    disparity_res = part1.compute_disparity(padded_img_l, padded_img_r, max_disp, window_size, alpha)
+    disparity_res = part1.compute_disparity3(padded_img_l, padded_img_r, max_disp, window_size, alpha)
     aepe = part1.compute_aepe(disparity_gt, disparity_res)
     print("AEPE: {:4.3f}".format(aepe))
 

@@ -14,7 +14,7 @@ def cost_ssd(patch1, patch2):
 
     # START your code here
     # NOTE: You should remove the next line while coding
-    difs = patch2 - patch2
+    difs = patch2 - patch1
     cost_ssd = np.sum(np.square(difs))
     # END your code here
 
@@ -112,20 +112,139 @@ def compute_disparity(padded_img_l, padded_img_r, max_disp, window_size, alpha):
     # START your code here
     # HINT: in numpy, there is a function named argmin
     # NOTE: You should remove the next line while coding
-    disparity = np.zeros(padded_img_l.shape)
-    for i in range(padded_img_l.shape[0]):
-        for j in range(padded_img_l.shape[1]):
-            px = padded_img_l[i,j]
+    disparity = np.zeros((padded_img_l.shape[0]-window_size+1, padded_img_l.shape[1]-window_size+1))
+    for i in range(window_size//2,padded_img_l.shape[0]-window_size//2):
+        for j in range(window_size//2,padded_img_l.shape[1]-window_size//2):
             # get patch 1
-            patch1 = 3
+            patch1 = padded_img_l[i-window_size//2:i+window_size//2, j-window_size//2:j+window_size//2]
             cost_vals=[]
             # search along horizontal line
-            for k in range(padded_img_l.shape[0]):
-                patch2 = 5
+            left_index=np.max([i-max_disp, 0])
+            for d in range(0,left_index+1):
+                # generate patch 2
+                patch2 = padded_img_r[i-window_size//2-d:i+window_size//2-d, j-window_size//2:j+window_size//2]
+                # compute cost
                 cost = cost_function(patch1, patch2, alpha)
+                # keep list of cost values
                 cost_vals.append(cost)
+            # compute minimum cost and add to disparity map
             disp = np.min(cost_vals)
-            disparity[i,j] = disp
+            disparity[i-window_size//2,j-window_size//2] = disp
+    # END your code here
+
+    assert disparity.ndim == 2
+    return disparity
+
+
+def compute_disparity3(padded_img_l, padded_img_r, max_disp, window_size, alpha):
+    """Compute the disparity map by using the window-based matching:
+    Args:
+        padded_img_l: The padded left-view input image as 2-dimensional numpy array
+        padded_img_r: The padded right-view input image as 2-dimensional numpy array
+        max_disp: the maximum disparity as a search range
+        window_size: the patch size for window-based matching, odd number
+        alpha: the weighting parameter for the cost function
+    Returns:
+        disparity: numpy array (H,W) of the same size as the input image without padding
+    """
+    assert padded_img_l.ndim == 2 
+    assert padded_img_r.ndim == 2 
+    assert padded_img_l.shape == padded_img_r.shape
+    assert max_disp > 0
+    assert window_size % 2 == 1
+
+    # START your code here
+    # HINT: in numpy, there is a function named argmin
+    # NOTE: You should remove the next line while coding
+    og_img_dimx = padded_img_l.shape[0]-(window_size//2)*2
+    og_img_dimy = padded_img_l.shape[1]-(window_size//2)*2
+    disparity = np.zeros((og_img_dimx, og_img_dimy))
+    for j in range(0, og_img_dimy-window_size):
+        for i in range(0, og_img_dimx-window_size): # iterate in reverse AKA from R to L to compare image patches
+         # iterate normally AKA from top to bottom
+            # get patch 1
+            if i == 0:
+                patch1 = padded_img_l[-(i+window_size):, j:j+window_size]
+            else:
+                patch1 = padded_img_l[-(i+window_size):-i, j:j+window_size]
+            cost_vals=[]
+            
+            # search along horizontal line, incrementing by 1 up to max_disp
+            for d in range(0,max_disp+1):
+                # check if still in range
+                if i + window_size + d <= og_img_dimx:
+                    # generate patch 2
+                    if i == 0 and d == 0: # check for edge case
+                        patch2 = padded_img_r[-(i+window_size):, j:j+window_size]
+                    else:
+                        patch2 = padded_img_r[-(i+window_size)-d:-i-d, j:j+window_size]
+                    # compute cost
+                    cost = cost_function(patch1, patch2, alpha)
+                    # keep list of cost values
+                    cost_vals.append(cost)
+            # compute minimum cost and add to disparity map
+            disp = np.min(cost_vals)
+            if i == 0:
+                disparity[-1,j] = disp
+            else:
+                disparity[-(i+1),j] = disp
+    # END your code here
+
+    assert disparity.ndim == 2
+    return disparity
+
+
+def compute_disparity2(padded_img_l, padded_img_r, max_disp, window_size, alpha):
+    """Compute the disparity map by using the window-based matching:
+    Args:
+        padded_img_l: The padded left-view input image as 2-dimensional numpy array
+        padded_img_r: The padded right-view input image as 2-dimensional numpy array
+        max_disp: the maximum disparity as a search range
+        window_size: the patch size for window-based matching, odd number
+        alpha: the weighting parameter for the cost function
+    Returns:
+        disparity: numpy array (H,W) of the same size as the input image without padding
+    """
+    assert padded_img_l.ndim == 2 
+    assert padded_img_r.ndim == 2 
+    assert padded_img_l.shape == padded_img_r.shape
+    assert max_disp > 0
+    assert window_size % 2 == 1
+
+    # START your code here
+    # HINT: in numpy, there is a function named argmin
+    # NOTE: You should remove the next line while coding
+    og_img_dimx = padded_img_l.shape[0]-(window_size//2)*2
+    og_img_dimy = padded_img_l.shape[1]-(window_size//2)*2
+    disparity = np.zeros((og_img_dimx, og_img_dimy))
+    for i in range(0, og_img_dimx-window_size): # iterate in reverse AKA from R to L to compare image patches
+        for j in range(0, og_img_dimy-window_size): # iterate normally AKA from top to bottom
+            # get patch 1
+            if i == 0:
+                patch1 = padded_img_l[-(i+window_size):, j:j+window_size]
+            else:
+                patch1 = padded_img_l[-(i+window_size):-i, j:j+window_size]
+            cost_vals=[]
+            
+            # search along horizontal line, incrementing by 1 up to max_disp
+            for d in range(0,max_disp+1):
+                # check if still in range
+                if i + window_size + d <= og_img_dimx:
+                    # generate patch 2
+                    if i == 0 and d == 0: # check for edge case
+                        patch2 = padded_img_r[-(i+window_size):, j:j+window_size]
+                    else:
+                        patch2 = padded_img_r[-(i+window_size)-d:-i-d, j:j+window_size]
+                    # compute cost
+                    cost = cost_function(patch1, patch2, alpha)
+                    # keep list of cost values
+                    cost_vals.append(cost)
+            # compute minimum cost and add to disparity map
+            disp = np.min(cost_vals)
+            if i == 0:
+                disparity[-1,j] = disp
+            else:
+                disparity[-(i+1),j] = disp
     # END your code here
 
     assert disparity.ndim == 2
@@ -148,7 +267,8 @@ def compute_aepe(disparity_gt, disparity_res):
 
     # START your code here
     # NOTE: You should remove the next line while coding
-    aepe = -1
+    N = disparity_gt.shape[0]*disparity_gt.shape[1]
+    aepe = (1/N)*np.sum(np.abs(disparity_gt-disparity_res))
     # END your code here
 
     assert np.isscalar(aepe)
@@ -160,5 +280,5 @@ def optimal_alpha():
     (w.r.t. other values)"""
 
     # TODO: You need to fix the alpha value
-    alpha = np.random.choice([-0.06, -0.01, 0.04, 0.1])
+    alpha = -0.06 # np.random.choice([-0.06, -0.01, 0.04, 0.1])
     return alpha
